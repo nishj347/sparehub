@@ -1,0 +1,73 @@
+from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.api.router import api_router
+from app.core.config import get_settings
+from app.core.logging import logger, setup_logging
+
+settings = get_settings()
+setup_logging(settings.APP_ENV)
+
+app = FastAPI(
+    title="Spare Parts Management & Discovery System API",
+    description="Enterprise REST API for spare parts catalog, inventory management, and issue tracking.",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+)
+
+# Configure CORS restricted strictly to origins defined in settings
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
+
+# Mount all API routes under /api
+app.include_router(api_router, prefix="/api")
+
+
+# Global Exception Handlers
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    """Handle standard HTTP exceptions with consistent JSON response schema."""
+    code = getattr(exc, "code", f"HTTP_{exc.status_code}")
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": exc.detail,
+            "code": code,
+        },
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Handle request validation errors with consistent JSON response schema."""
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "detail": exc.errors(),
+            "code": "VALIDATION_ERROR",
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Handle unhandled server exceptions. Internal details masked in production."""
+    logger.exception(f"Unhandled server exception on {request.method} {request.url.path}: {exc}")
+    detail = "Internal server error" if settings.is_production else str(exc)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": detail,
+            "code": "INTERNAL_SERVER_ERROR",
+        },
+    )
