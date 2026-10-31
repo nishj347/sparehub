@@ -101,3 +101,22 @@ def get_filters(
         for l in db.execute(loc_stmt).fetchall()
     ]
     return FiltersResponse(categories=cats, machines=machines, locations=locations)
+
+
+from app.schemas.part_detail import EmployeePartDetail
+from app.services.part_detail_service import get_employee_part_detail
+
+
+@router.get(
+    "/{part_id}",
+    response_model=EmployeePartDetail,
+    summary="Get employee spare part detail",
+)
+def get_part_detail(
+    part_id: int,
+    db: Session = Depends(get_db),
+    user: "User" = Depends(require_employee_or_admin),
+) -> EmployeePartDetail:
+    """Retrieve full employee-facing details of an active spare part."""
+    return get_employee_part_detail(db=db, part_id=part_id, current_user=user)
+
