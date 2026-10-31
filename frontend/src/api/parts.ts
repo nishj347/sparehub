@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import { Page } from '../types/common';
 import { PartCard, PartFilters, PartSearchParams } from '../types/partsPublic';
+import { EmployeePartDetail } from '../types/partDetail';
 
 /** Build a query-string from search params, omitting empty/undefined values. */
 function buildQuery(params: PartSearchParams): string {
@@ -24,5 +25,9 @@ export function searchParts(params: PartSearchParams): Promise<Page<PartCard>> {
 
 export function getPartFilters(): Promise<PartFilters> {
   return apiClient.get<PartFilters>('/parts/filters');
+}
+
+export function getPart(id: number | string): Promise<EmployeePartDetail> {
+  return apiClient.get<EmployeePartDetail>(`/parts/${id}`);
 }
 

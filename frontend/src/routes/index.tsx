@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
 import { DashboardPage } from '../pages/employee/DashboardPage';
 import { PartsSearchPage } from '../pages/employee/PartsSearchPage';
-import { PartDetailPlaceholder } from '../pages/employee/PartDetailPlaceholder';
+import { PartDetailPage as EmployeePartDetailPage } from '../pages/employee/PartDetailPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
@@ -33,7 +33,7 @@ export const AppRoutes: React.FC = () => {
       >
         <Route index element={<DashboardPage />} />
         <Route path="parts" element={<PartsSearchPage />} />
-        <Route path="parts/:id" element={<PartDetailPlaceholder />} />
+        <Route path="parts/:id" element={<EmployeePartDetailPage />} />
         <Route
           path="issues"
           element={
