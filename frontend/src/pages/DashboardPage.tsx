@@ -2,8 +2,11 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { CheckCircle2, XCircle, RefreshCw, Server, Database, Activity } from 'lucide-react';
 import { apiClient, ApiError } from '../api/client';
 import { SystemStatusState } from '../types';
+import { useAuth } from '../auth/AuthContext';
+
 
 export const DashboardPage: React.FC = () => {
+  const { user } = useAuth();
   const [status, setStatus] = useState<SystemStatusState>({
     apiStatus: 'loading',
     dbStatus: 'loading',
@@ -76,13 +79,16 @@ export const DashboardPage: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">System Dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          {user ? `Welcome, ${user.name.split(' ')[0]}` : 'Dashboard'}
+        </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Module 1 Technical Architecture Skeleton & End-to-End Connectivity Verification
+          {user ? `${user.location.name} — Spare Parts Management System` : 'Spare Parts Management System'}
         </p>
       </div>
 
-      {/* System Status Card */}
+      {/* System Status Card — dev diagnostic; visible only to authenticated users.
+          TODO: restrict to STORE_ADMIN only, or remove entirely, in a later module. */}
       <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
         {/* Card Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">

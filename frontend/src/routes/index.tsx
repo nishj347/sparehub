@@ -1,14 +1,30 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
 import { DashboardPage } from '../pages/DashboardPage';
-import { PlaceholderPage } from '../pages/PlaceholderPage';
+import { ForbiddenPage } from '../pages/ForbiddenPage';
+import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
+import { PlaceholderPage } from '../pages/PlaceholderPage';
+import { LocationsPage } from '../pages/admin/LocationsPage';
+import { MachinesPage } from '../pages/admin/MachinesPage';
+import { ProtectedRoute, RoleRoute } from './ProtectedRoute';
 
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" element={<AppShell />}>
+      {/* Public routes */}
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Employee area — accessible by both EMPLOYEE and STORE_ADMIN */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <AppShell />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<DashboardPage />} />
         <Route
           path="parts"
@@ -24,14 +40,74 @@ export const AppRoutes: React.FC = () => {
           path="issues"
           element={
             <PlaceholderPage
-              title="Issue History & Workflow"
-              description="Historical records of spare parts issuance, requisitions, and tracking."
+              title="My Issue History"
+              description="Historical records of spare parts issuance and tracking."
               targetModule="Module 6 (Issue Workflow & Audit)"
             />
           }
         />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
+
+      {/* Admin area — STORE_ADMIN only */}
+      <Route
+        path="/admin"
+        element={
+          <RoleRoute allowedRoles={['STORE_ADMIN']}>
+            <AppShell />
+          </RoleRoute>
+        }
+      >
+        <Route
+          index
+          element={
+            <PlaceholderPage
+              title="Admin Dashboard"
+              description="Overview of inventory levels, recent transactions, and low-stock alerts."
+              targetModule="Module 4 (Admin Dashboard)"
+            />
+          }
+        />
+        <Route path="locations" element={<LocationsPage />} />
+        <Route path="machines" element={<MachinesPage />} />
+        <Route
+          path="inventory"
+          element={
+            <PlaceholderPage
+              title="Spare Parts Inventory"
+              description="Manage stock levels, receive stock, and update inventory across all locations."
+              targetModule="Module 4 (Inventory Management)"
+            />
+          }
+        />
+        <Route
+          path="activity"
+          element={
+            <PlaceholderPage
+              title="Inventory Activity"
+              description="Ledger of all inventory transactions — received, issued, and adjusted."
+              targetModule="Module 5 (Inventory Activity Log)"
+            />
+          }
+        />
+        <Route
+          path="notifications"
+          element={
+            <PlaceholderPage
+              title="Notifications"
+              description="Low-stock alerts and system notifications for store administrators."
+              targetModule="Module 7 (Notifications)"
+            />
+          }
+        />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+
+      {/* Explicit 403 page */}
+      <Route path="/forbidden" element={<ForbiddenPage />} />
+
+      {/* Catch-all 404 */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };

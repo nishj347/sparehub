@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -38,24 +39,38 @@ app.include_router(api_router, prefix="/api")
 async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
     """Handle standard HTTP exceptions with consistent JSON response schema."""
     code = getattr(exc, "code", f"HTTP_{exc.status_code}")
+    content: dict = {
+        "detail": exc.detail,
+        "code": code,
+    }
+    if hasattr(exc, "field") and exc.field is not None:
+        content["field"] = exc.field
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "detail": exc.detail,
-            "code": code,
-        },
+        content=content,
+        headers=getattr(exc, "headers", None),
     )
+
+
 
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     """Handle request validation errors with consistent JSON response schema."""
+    errors = exc.errors()
+    content: dict = {
+        "detail": jsonable_encoder(errors),
+        "code": "validation_error",
+    }
+    if errors:
+        loc = errors[0].get("loc", ())
+        if len(loc) > 1 and loc[0] == "body":
+            content["field"] = str(loc[1])
+        elif loc:
+            content["field"] = str(loc[-1])
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={
-            "detail": exc.errors(),
-            "code": "VALIDATION_ERROR",
-        },
+        content=content,
     )
 
 

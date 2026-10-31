@@ -1,19 +1,42 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Wrench, ClipboardList, X } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import {
+  Activity,
+  Bell,
+  Building2,
+  Cpu,
+  LayoutDashboard,
+  ClipboardList,
+  LogOut,
+  Package,
+  Wrench,
+  X,
+  ChevronRight,
+} from 'lucide-react';
+import { useAuth } from '../../auth/AuthContext';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const navItems = [
-  { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-  { name: 'Spare Parts', path: '/parts', icon: Wrench },
-  { name: 'Issue History', path: '/issues', icon: ClipboardList },
-];
+const linkBase =
+  'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors';
+const activeLink = 'bg-blue-600 text-white shadow-sm';
+const inactiveLink = 'text-slate-400 hover:text-slate-100 hover:bg-slate-800';
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    onClose();
+    navigate('/login');
+  };
+
+  const isAdmin = user?.role === 'STORE_ADMIN';
+
   return (
     <>
       {/* Mobile overlay backdrop */}
@@ -32,7 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         }`}
       >
         {/* Brand header */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-slate-800">
+        <div className="h-16 flex items-center justify-between px-5 border-b border-slate-800 shrink-0">
           <div className="flex flex-col">
             <span className="text-sm font-semibold tracking-wide text-white">
               Spare Parts Management
@@ -51,34 +74,131 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Navigation list */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-1">
+          {isAdmin ? (
+            <>
+              {/* Admin navigation */}
+              <p className="px-3 pt-1 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                Admin
+              </p>
               <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={() => onClose()}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
-                  }`
-                }
+                to="/admin"
+                end
+                onClick={onClose}
+                className={({ isActive }) => `${linkBase} ${isActive ? activeLink : inactiveLink}`}
               >
-                <Icon className="w-4 h-4 shrink-0" />
-                <span>{item.name}</span>
+                <LayoutDashboard className="w-4 h-4 shrink-0" />
+                <span>Admin Dashboard</span>
               </NavLink>
-            );
-          })}
+              <NavLink
+                to="/admin/inventory"
+                onClick={onClose}
+                className={({ isActive }) => `${linkBase} ${isActive ? activeLink : inactiveLink}`}
+              >
+                <Package className="w-4 h-4 shrink-0" />
+                <span>Spare Parts Inventory</span>
+              </NavLink>
+              <NavLink
+                to="/admin/activity"
+                onClick={onClose}
+                className={({ isActive }) => `${linkBase} ${isActive ? activeLink : inactiveLink}`}
+              >
+                <Activity className="w-4 h-4 shrink-0" />
+                <span>Inventory Activity</span>
+              </NavLink>
+              <NavLink
+                to="/admin/notifications"
+                onClick={onClose}
+                className={({ isActive }) => `${linkBase} ${isActive ? activeLink : inactiveLink}`}
+              >
+                <Bell className="w-4 h-4 shrink-0" />
+                <span>Notifications</span>
+              </NavLink>
+
+              {/* Master Data Section */}
+              <div className="pt-3 border-t border-slate-800/80 mt-3">
+                <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                  Master Data
+                </p>
+                <NavLink
+                  to="/admin/locations"
+                  onClick={onClose}
+                  className={({ isActive }) => `${linkBase} ${isActive ? activeLink : inactiveLink}`}
+                >
+                  <Building2 className="w-4 h-4 shrink-0" />
+                  <span>Locations</span>
+                </NavLink>
+                <NavLink
+                  to="/admin/machines"
+                  onClick={onClose}
+                  className={({ isActive }) => `${linkBase} ${isActive ? activeLink : inactiveLink}`}
+                >
+                  <Cpu className="w-4 h-4 shrink-0" />
+                  <span>Machines</span>
+                </NavLink>
+              </div>
+
+              {/* Separator + Employee View */}
+              <div className="pt-4 border-t border-slate-800 mt-4">
+                <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                  Employee View
+                </p>
+                <NavLink
+                  to="/"
+                  end
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    `${linkBase} ${isActive ? activeLink : inactiveLink}`
+                  }
+                >
+                  <ChevronRight className="w-4 h-4 shrink-0" />
+                  <span>Employee Area</span>
+                </NavLink>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Employee navigation */}
+              <NavLink
+                to="/"
+                end
+                onClick={onClose}
+                className={({ isActive }) => `${linkBase} ${isActive ? activeLink : inactiveLink}`}
+              >
+                <LayoutDashboard className="w-4 h-4 shrink-0" />
+                <span>Dashboard</span>
+              </NavLink>
+              <NavLink
+                to="/parts"
+                onClick={onClose}
+                className={({ isActive }) => `${linkBase} ${isActive ? activeLink : inactiveLink}`}
+              >
+                <Wrench className="w-4 h-4 shrink-0" />
+                <span>Spare Parts</span>
+              </NavLink>
+              <NavLink
+                to="/issues"
+                onClick={onClose}
+                className={({ isActive }) => `${linkBase} ${isActive ? activeLink : inactiveLink}`}
+              >
+                <ClipboardList className="w-4 h-4 shrink-0" />
+                <span>My Issue History</span>
+              </NavLink>
+            </>
+          )}
         </nav>
 
-        {/* Bottom footer metadata */}
-        <div className="p-4 border-t border-slate-800 text-xs text-slate-500">
-          <p className="font-medium text-slate-400">Architecture v1.0.0</p>
-          <p className="mt-0.5">Core Monolith Foundation</p>
+        {/* Bottom: logout */}
+        <div className="p-3 border-t border-slate-800 shrink-0">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            <span>Sign Out</span>
+          </button>
         </div>
       </aside>
     </>

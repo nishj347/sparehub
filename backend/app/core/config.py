@@ -3,8 +3,10 @@ import sys
 from functools import lru_cache
 from typing import List
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app.core.logging import logger
 
 
 class Settings(BaseSettings):
@@ -15,6 +17,10 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     SECRET_KEY: str = "dev_secret_key_placeholder_change_in_production_min_32_chars"
     UPLOAD_DIR: str = "uploads"
+    SEED_DEFAULT_PASSWORD: str = ""
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    JWT_ALGORITHM: str = "HS256"
+
 
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env", "../.env"),
@@ -43,6 +49,34 @@ class Settings(BaseSettings):
                 "Specify explicit origin domains (e.g., http://localhost:5173)."
             )
         return v
+
+    @model_validator(mode="after")
+    def validate_secret_key_security(self) -> "Settings":
+        """Enforce strict cryptographic secret standards in production while permitting dev overrides."""
+        placeholders = [
+            "dev_secret_key_placeholder",
+            "change_in_production",
+            "secret",
+            "changeme",
+        ]
+        is_placeholder = any(p in self.SECRET_KEY.lower() for p in placeholders)
+        too_short = len(self.SECRET_KEY.strip()) < 32
+
+        if self.is_production:
+            if is_placeholder or too_short:
+                raise ValueError(
+                    "CRITICAL SECURITY CONFIGURATION ERROR: In production environment (APP_ENV=production), "
+                    "SECRET_KEY must be a cryptographically secure random string of at least 32 characters, "
+                    "and cannot be a default/placeholder value."
+                )
+        else:
+            if is_placeholder or too_short:
+                logger.warning(
+                    "[SECURITY WARNING] Using a placeholder or short SECRET_KEY in development environment. "
+                    "Ensure a strong, unique >=32 character SECRET_KEY is configured before deploying to production."
+                )
+        return self
+
 
     @property
     def cors_origins_list(self) -> List[str]:
