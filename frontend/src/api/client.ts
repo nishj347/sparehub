@@ -61,16 +61,21 @@ async function request<T>(
     ? { Authorization: `Bearer ${token}` }
     : {};
 
+  const isFormData = typeof FormData !== 'undefined' && options?.body instanceof FormData;
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    ...authHeader,
+    ...(options?.headers as Record<string, string> || {}),
+  };
+  if (!isFormData && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   let response: Response;
   try {
     response = await fetch(targetUrl, {
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        ...authHeader,
-        ...(options?.headers || {}),
-      },
       ...options,
+      headers,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Network request failed';
@@ -123,14 +128,20 @@ export const apiClient = {
   post: <T>(endpoint: string, body?: unknown, options?: RequestInit) =>
     request<T>(endpoint, {
       method: 'POST',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body !== undefined ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined,
       ...options,
     }),
 
   patch: <T>(endpoint: string, body?: unknown, options?: RequestInit) =>
     request<T>(endpoint, {
       method: 'PATCH',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body !== undefined ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined,
+      ...options,
+    }),
+
+  delete: <T>(endpoint: string, options?: RequestInit) =>
+    request<T>(endpoint, {
+      method: 'DELETE',
       ...options,
     }),
 

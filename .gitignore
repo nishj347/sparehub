@@ -17,6 +17,8 @@ eggs/
 lib/
 lib64/
 parts/
+!frontend/src/lib/
+!frontend/src/components/admin/parts/
 sdist/
 var/
 wheels/

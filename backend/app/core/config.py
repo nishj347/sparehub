@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     SECRET_KEY: str = "dev_secret_key_placeholder_change_in_production_min_32_chars"
     UPLOAD_DIR: str = "uploads"
+    MAX_UPLOAD_MB: int = 5
     SEED_DEFAULT_PASSWORD: str = ""
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     JWT_ALGORITHM: str = "HS256"

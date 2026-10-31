@@ -92,7 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <span>Admin Dashboard</span>
               </NavLink>
               <NavLink
-                to="/admin/inventory"
+                to="/admin/parts"
                 onClick={onClose}
                 className={({ isActive }) => `${linkBase} ${isActive ? activeLink : inactiveLink}`}
               >

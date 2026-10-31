@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
 import { DashboardPage } from '../pages/DashboardPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
@@ -8,6 +8,10 @@ import { NotFoundPage } from '../pages/NotFoundPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
 import { LocationsPage } from '../pages/admin/LocationsPage';
 import { MachinesPage } from '../pages/admin/MachinesPage';
+import { PartsPage } from '../pages/admin/PartsPage';
+import { PartCreatePage } from '../pages/admin/PartCreatePage';
+import { PartEditPage } from '../pages/admin/PartEditPage';
+import { PartDetailPage } from '../pages/admin/PartDetailPage';
 import { ProtectedRoute, RoleRoute } from './ProtectedRoute';
 
 export const AppRoutes: React.FC = () => {
@@ -70,16 +74,11 @@ export const AppRoutes: React.FC = () => {
         />
         <Route path="locations" element={<LocationsPage />} />
         <Route path="machines" element={<MachinesPage />} />
-        <Route
-          path="inventory"
-          element={
-            <PlaceholderPage
-              title="Spare Parts Inventory"
-              description="Manage stock levels, receive stock, and update inventory across all locations."
-              targetModule="Module 4 (Inventory Management)"
-            />
-          }
-        />
+        <Route path="parts" element={<PartsPage />} />
+        <Route path="parts/new" element={<PartCreatePage />} />
+        <Route path="parts/:id" element={<PartDetailPage />} />
+        <Route path="parts/:id/edit" element={<PartEditPage />} />
+        <Route path="inventory" element={<Navigate to="/admin/parts" replace />} />
         <Route
           path="activity"
           element={

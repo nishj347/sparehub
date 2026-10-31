@@ -17,6 +17,7 @@ interface DataTableProps<T> {
   sort?: { field: string; order: 'asc' | 'desc' };
   onSort?: (field: string) => void;
   emptyState?: React.ReactNode;
+  onRowClick?: (row: T) => void;
 }
 
 export function DataTable<T>({
@@ -27,6 +28,7 @@ export function DataTable<T>({
   sort,
   onSort,
   emptyState,
+  onRowClick,
 }: DataTableProps<T>): React.ReactElement {
   if (isLoading && data.length === 0) {
     return <LoadingState />;
@@ -103,7 +105,10 @@ export function DataTable<T>({
             data.map((row) => (
               <tr
                 key={keyExtractor(row)}
-                className="hover:bg-slate-50/75 transition-colors"
+                onClick={() => onRowClick && onRowClick(row)}
+                className={`hover:bg-slate-50/75 transition-colors ${
+                  onRowClick ? 'cursor-pointer' : ''
+                }`}
               >
                 {columns.map((col, index) => {
                   const alignClass =

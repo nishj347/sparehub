@@ -1,8 +1,10 @@
+import os
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.router import api_router
@@ -32,6 +34,12 @@ app.add_middleware(
 
 # Mount all API routes under /api
 app.include_router(api_router, prefix="/api")
+
+# Static files for image uploads
+# Prototype choice: catalogue photos served from local disk via StaticFiles.
+# In production, this would use signed URLs or object storage (S3/GCS/Azure Blob) backed by a CDN.
+os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 
 # Global Exception Handlers
