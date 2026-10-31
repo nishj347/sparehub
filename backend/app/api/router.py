@@ -5,6 +5,7 @@ from app.api.routes import (
     admin_locations,
     admin_machines,
     admin_parts,
+    parts,
     auth,
     health,
 )
@@ -21,4 +22,4 @@ api_router.include_router(auth.router)
 api_router.include_router(admin_locations.router)
 api_router.include_router(admin_machines.router)
 api_router.include_router(admin_parts.router)
-api_router.include_router(admin_inventory.router)
+api_router.include_router(parts.router)

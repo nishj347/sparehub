@@ -1,7 +1,9 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
-import { DashboardPage } from '../pages/DashboardPage';
+import { DashboardPage } from '../pages/employee/DashboardPage';
+import { PartsSearchPage } from '../pages/employee/PartsSearchPage';
+import { PartDetailPlaceholder } from '../pages/employee/PartDetailPlaceholder';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
@@ -30,23 +32,15 @@ export const AppRoutes: React.FC = () => {
         }
       >
         <Route index element={<DashboardPage />} />
-        <Route
-          path="parts"
-          element={
-            <PlaceholderPage
-              title="Spare Parts Catalog"
-              description="Master parts repository, cross-references, and technical specifications."
-              targetModule="Module 4 (Parts Catalog & Search)"
-            />
-          }
-        />
+        <Route path="parts" element={<PartsSearchPage />} />
+        <Route path="parts/:id" element={<PartDetailPlaceholder />} />
         <Route
           path="issues"
           element={
             <PlaceholderPage
               title="My Issue History"
               description="Historical records of spare parts issuance and tracking."
-              targetModule="Module 6 (Issue Workflow & Audit)"
+              targetModule="Module 7 (Issue Workflow & Audit)"
             />
           }
         />
@@ -110,3 +104,4 @@ export const AppRoutes: React.FC = () => {
     </Routes>
   );
 };
+
