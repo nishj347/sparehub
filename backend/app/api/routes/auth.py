@@ -1,9 +1,10 @@
 """Authentication endpoints for user login and identity retrieval."""
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.deps import get_current_user
+from app.core.rate_limit import get_client_ip, login_rate_limiter
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.auth import CurrentUser, LoginRequest, TokenResponse
@@ -21,15 +22,20 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 )
 def login(
     payload: LoginRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ) -> TokenResponse:
     """Authenticate credentials and generate a signed access token.
 
     Note: Sensitive details such as passwords are never logged.
     """
-    # TODO(Module 11): rate limit login
-    user = authenticate_user(db, payload.identifier, payload.password)
     settings = get_settings()
+
+    # In-memory IP rate limiting (best-effort per-process; DB lockout is authoritative)
+    client_ip = get_client_ip(request)
+    login_rate_limiter.check_rate_limit(client_ip, settings.LOGIN_IP_RATE_PER_MINUTE)
+
+    user = authenticate_user(db, payload.identifier, payload.password)
 
     from app.core.jwt import create_access_token
 

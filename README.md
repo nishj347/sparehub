@@ -269,3 +269,18 @@ curl -s http://localhost:8000/api/health/db
 - **Production Information Masking**: Internal server exception tracebacks are withheld when `APP_ENV=production`.
 - **CORS Whitelisting**: The API rejects unconfigured origins; wildcards (`*`) are disallowed by validator.
 - **No Secrets in Version Control**: `.env` files are gitignored; templates are kept in `.env.example`.
+
+---
+
+## 10. Production Deployment
+
+SpareHub includes a production-hardened Docker Compose stack (`docker-compose.prod.yml`) featuring:
+- Nginx unprivileged reverse proxy serving the built React SPA, static assets, and proxying `/api` and `/uploads`.
+- Non-root FastAPI backend container with body size limits, rate limiting, and brute-force lockout protection.
+- Isolated PostgreSQL 16 database with persistent named volumes and internal network binding (no host ports exposed).
+- Automated one-shot database migration container (`migrate`) ensuring Alembic schema head is applied prior to backend startup.
+- Full backup (`scripts/backup.sh`, `scripts/backup.ps1`) and disaster recovery restore runbooks.
+
+For step-by-step production installation, TLS proxy configuration, upgrade workflows, and operational runbooks, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+Prior to taking the platform live, review and verify all items in the [GO_LIVE_CHECKLIST.md](GO_LIVE_CHECKLIST.md).

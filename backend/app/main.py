@@ -1,4 +1,6 @@
 import os
+import time
+import uuid
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
@@ -6,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api.router import api_router
 from app.core.config import get_settings
@@ -14,14 +17,22 @@ from app.core.logging import logger, setup_logging
 settings = get_settings()
 setup_logging(settings.APP_ENV)
 
+MAX_BODY_SIZE_BYTES = 8 * 1024 * 1024  # 8 MB
+
 app = FastAPI(
     title="Spare Parts Management & Discovery System API",
     description="Enterprise REST API for spare parts catalog, inventory management, and issue tracking.",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
+    docs_url=None if settings.is_production else "/docs",
+    redoc_url=None if settings.is_production else "/redoc",
+    openapi_url=None if settings.is_production else "/openapi.json",
 )
+
+# Optional TrustedHostMiddleware
+if settings.ALLOWED_HOSTS:
+    allowed_hosts = [h.strip() for h in settings.ALLOWED_HOSTS.split(",") if h.strip()]
+    if allowed_hosts:
+        app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
 # Configure CORS restricted strictly to origins defined in settings
 app.add_middleware(
@@ -32,12 +43,54 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def security_and_logging_middleware(request: Request, call_next):
+    """Enforce body size limits, inject request ID, log requests, and attach security headers."""
+    # 1. Body size limit (8 MB)
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            if int(content_length) > MAX_BODY_SIZE_BYTES:
+                return JSONResponse(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    content={"detail": "Request body too large", "code": "request_too_large"},
+                )
+        except ValueError:
+            pass
+
+    # 2. Request ID & Timing
+    request_id = request.headers.get("x-request-id") or uuid.uuid4().hex
+    start_time = time.perf_counter()
+
+    response = await call_next(request)
+
+    duration_ms = (time.perf_counter() - start_time) * 1000.0
+    logger.info(
+        f"[{request_id}] {request.method} {request.url.path} {response.status_code} {duration_ms:.2f}ms"
+    )
+
+    response.headers["X-Request-ID"] = request_id
+
+    # 3. Security headers
+    path = request.url.path
+    if path.startswith("/api/"):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["Cache-Control"] = "no-store"
+        if settings.is_production:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    elif path.startswith("/uploads/"):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+
+    return response
+
+
 # Mount all API routes under /api
 app.include_router(api_router, prefix="/api")
 
 # Static files for image uploads
-# Prototype choice: catalogue photos served from local disk via StaticFiles.
-# In production, this would use signed URLs or object storage (S3/GCS/Azure Blob) backed by a CDN.
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
@@ -58,8 +111,6 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
         content=content,
         headers=getattr(exc, "headers", None),
     )
-
-
 
 
 @app.exception_handler(RequestValidationError)

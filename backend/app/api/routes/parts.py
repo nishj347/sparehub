@@ -1,14 +1,14 @@
 # backend/app/api/routes/parts.py
 """Employee‑facing part discovery endpoints (Module 6A)."""
 
-from typing import Optional, List, Literal
-from typing import List, Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
 from app.core.deps import require_employee_or_admin
 from app.db.session import get_db
+from app.models.user import User
 from app.schemas.common import Page
 from app.schemas.part_public import PartCard
 from app.services.part_search_service import search_parts
@@ -53,7 +53,6 @@ def list_parts(
 
 # Filter endpoint – returns distinct categories, active machines, active locations
 from pydantic import BaseModel
-from typing import List
 from app.models.spare_part import SparePart
 from app.models.machine import Machine
 from app.models.inventory import Inventory

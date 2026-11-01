@@ -1,7 +1,7 @@
 import { ApiErrorResponse, ApiHealthResponse, DbHealthResponse } from '../types';
 import { CurrentUser, LoginRequest, LoginResponse } from '../types/auth';
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace(/\/+$/, '');
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/+$/, '');
 
 // Token storage key in sessionStorage.
 // DELIBERATE PROTOTYPE CHOICE: Token is stored in sessionStorage (not localStorage or cookies)

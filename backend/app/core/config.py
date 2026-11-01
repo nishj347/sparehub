@@ -1,7 +1,7 @@
 import os
 import sys
 from functools import lru_cache
-from typing import List
+from typing import List, Optional
 
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -22,6 +22,16 @@ class Settings(BaseSettings):
     SEED_DEFAULT_PASSWORD: str = ""
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     JWT_ALGORITHM: str = "HS256"
+
+    # Login Lockout & Rate Limiting (Module 11A)
+    LOGIN_MAX_FAILED_ATTEMPTS: int = 5
+    LOGIN_LOCKOUT_MINUTES: int = 15
+    LOGIN_IP_RATE_PER_MINUTE: int = 20
+    TRUSTED_PROXY_COUNT: int = 0
+    ALLOWED_HOSTS: Optional[str] = None
+    SQL_ECHO: bool = False
+    ALLOW_INSECURE_CORS: bool = False
+    TEST_DATABASE_URL: Optional[str] = None
 
 
     model_config = SettingsConfigDict(
@@ -66,8 +76,8 @@ class Settings(BaseSettings):
         return cleaned
 
     @model_validator(mode="after")
-    def validate_secret_key_security(self) -> "Settings":
-        """Enforce strict cryptographic secret standards in production while permitting dev overrides."""
+    def validate_production_security(self) -> "Settings":
+        """Enforce strict cryptographic and configuration standards in production."""
         placeholders = [
             "dev_secret_key_placeholder",
             "change_in_production",
@@ -84,6 +94,24 @@ class Settings(BaseSettings):
                     "SECRET_KEY must be a cryptographically secure random string of at least 32 characters, "
                     "and cannot be a default/placeholder value."
                 )
+
+            # Refuse SEED_DEFAULT_PASSWORD in production
+            if self.SEED_DEFAULT_PASSWORD and self.SEED_DEFAULT_PASSWORD.strip():
+                raise ValueError(
+                    "CRITICAL SECURITY ERROR: SEED_DEFAULT_PASSWORD must not be configured in production environment."
+                )
+
+            # Refuse non-HTTPS or wildcard CORS origins in production
+            for origin in self.cors_origins_list:
+                if origin == "*":
+                    raise ValueError("CRITICAL SECURITY ERROR: Wildcard '*' CORS origin is forbidden in production.")
+                if not origin.startswith("https://"):
+                    if not self.ALLOW_INSECURE_CORS:
+                        raise ValueError(
+                            f"CRITICAL SECURITY ERROR: Non-HTTPS CORS origin '{origin}' is forbidden in production unless ALLOW_INSECURE_CORS=true."
+                        )
+                    else:
+                        logger.warning(f"[SECURITY WARNING] Insecure non-HTTPS CORS origin allowed: {origin}")
         else:
             if is_placeholder or too_short:
                 logger.warning(

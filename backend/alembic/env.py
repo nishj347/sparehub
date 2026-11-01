@@ -25,9 +25,10 @@ if config.config_file_name is not None:
 # Model's MetaData object for 'autogenerate' support
 target_metadata = Base.metadata
 
-# Inject database URL from pydantic application settings
+# Inject database URL: check environment override first, else fallback to settings
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+db_url = os.environ.get("ALEMBIC_DATABASE_URL") or os.environ.get("DATABASE_URL") or settings.DATABASE_URL
+config.set_main_option("sqlalchemy.url", db_url)
 
 
 def run_migrations_offline() -> None:

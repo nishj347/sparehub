@@ -68,7 +68,9 @@ export const DashboardPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    checkHealth();
+    if (import.meta.env.DEV) {
+      checkHealth();
+    }
   }, [checkHealth]);
 
   const isLoading = status.apiStatus === 'loading' || status.dbStatus === 'loading';
@@ -87,8 +89,8 @@ export const DashboardPage: React.FC = () => {
         </p>
       </div>
 
-      {/* System Status Card — dev diagnostic; visible only to authenticated users.
-          TODO: restrict to STORE_ADMIN only, or remove entirely, in a later module. */}
+      {/* System Status Card — dev diagnostic; visible only in development mode */}
+      {import.meta.env.DEV && (
       <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
         {/* Card Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -260,6 +262,7 @@ export const DashboardPage: React.FC = () => {
           </div>
         )}
       </div>
+      )}
 
       {/* Architecture Information Box */}
       <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">

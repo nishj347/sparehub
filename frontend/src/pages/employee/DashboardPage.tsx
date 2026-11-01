@@ -49,7 +49,11 @@ export const DashboardPage: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => { checkHealth(); }, [checkHealth]);
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      checkHealth();
+    }
+  }, [checkHealth]);
 
   useEffect(() => {
     getPartFilters().then(setFilters).catch(() => { /* silent */ });
@@ -123,7 +127,8 @@ export const DashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* System Status Card — dev diagnostic; keep as is */}
+      {/* System Status Card — dev diagnostic; visible only in development mode */}
+      {import.meta.env.DEV && (
       <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -252,6 +257,7 @@ export const DashboardPage: React.FC = () => {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };

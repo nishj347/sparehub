@@ -10,7 +10,7 @@ settings = get_settings()
 engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True,
-    echo=(not settings.is_production),
+    echo=(settings.SQL_ECHO and not settings.is_production),
     connect_args={"connect_timeout": 5},
 )
 
