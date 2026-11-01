@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Menu, ShieldCheck, User, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
+import { NotificationBell } from './NotificationBell';
 
 interface TopbarProps {
   onToggleSidebar: () => void;
@@ -56,9 +57,12 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
         </div>
       </div>
 
-      {/* Right: user menu */}
-      <div className="relative" ref={menuRef}>
-        {user ? (
+      {/* Right: user menu & notifications */}
+      <div className="flex items-center gap-3">
+        {user?.role === 'STORE_ADMIN' && <NotificationBell />}
+
+        <div className="relative" ref={menuRef}>
+          {user ? (
           <>
             <button
               type="button"
@@ -133,6 +137,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
             </div>
           </div>
         )}
+        </div>
       </div>
     </header>
   );

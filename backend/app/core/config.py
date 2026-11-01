@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173"
     APP_ENV: str = "development"
+    APP_TIMEZONE: str = "Asia/Kolkata"
     SECRET_KEY: str = "dev_secret_key_placeholder_change_in_production_min_32_chars"
     UPLOAD_DIR: str = "uploads"
     MAX_UPLOAD_MB: int = 5
@@ -50,6 +51,19 @@ class Settings(BaseSettings):
                 "Specify explicit origin domains (e.g., http://localhost:5173)."
             )
         return v
+
+    @field_validator("APP_TIMEZONE")
+    @classmethod
+    def validate_app_timezone(cls, v: str) -> str:
+        cleaned = v.strip() if v else ""
+        if not cleaned:
+            raise ValueError("APP_TIMEZONE cannot be empty.")
+        try:
+            import zoneinfo
+            zoneinfo.ZoneInfo(cleaned)
+        except Exception as exc:
+            raise ValueError(f"Invalid APP_TIMEZONE '{cleaned}'. Must be a valid IANA timezone name (e.g. Asia/Kolkata).") from exc
+        return cleaned
 
     @model_validator(mode="after")
     def validate_secret_key_security(self) -> "Settings":

@@ -12,23 +12,46 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { getPart } from '../../api/parts';
-import { EmployeePartDetail } from '../../types/partDetail';
+import { EmployeePartDetail, LocationStockDetail } from '../../types/partDetail';
+import { IssueResponse } from '../../types/issues';
 import { AvailabilityBadge } from '../../components/parts/AvailabilityBadge';
 import { PartImage } from '../../components/parts/PartImage';
 import { LocationLine } from '../../components/parts/LocationLine';
+import { IssuePartModal } from '../../components/parts/IssuePartModal';
 import { useToast } from '../../components/ui/Toast';
+import { useAuth } from '../../auth/AuthContext';
 import { ApiError } from '../../api/client';
 
 export const PartDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { user } = useAuth();
 
   const [part, setPart] = useState<EmployeePartDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [is404, setIs404] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Issue Part modal state
+  const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
+  const [selectedIssueLocation, setSelectedIssueLocation] = useState<LocationStockDetail | null>(null);
+
+  const handleOpenIssueModal = (locationRow: LocationStockDetail) => {
+    setSelectedIssueLocation(locationRow);
+    setIsIssueModalOpen(true);
+  };
+
+  const handleCloseIssueModal = () => {
+    setIsIssueModalOpen(false);
+    setSelectedIssueLocation(null);
+  };
+
+  const handleIssueSuccess = (res: IssueResponse) => {
+    showToast(`${res.quantity_issued} unit(s) issued successfully.`, 'success');
+    fetchPart();
+  };
 
   const fetchPart = useCallback(async () => {
     if (!id || isNaN(Number(id))) {
@@ -315,16 +338,38 @@ export const PartDetailPage: React.FC = () => {
           {/* Action Card */}
           <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm space-y-3">
             <h2 className="text-sm font-semibold text-slate-800">Part Actions</h2>
-            <button
-              type="button"
-              disabled
-              className="w-full py-2.5 px-4 bg-slate-100 text-slate-400 font-medium text-sm rounded-lg border border-slate-200 cursor-not-allowed transition-colors"
-            >
-              Issue Part
-            </button>
-            <p className="text-xs text-slate-500 text-center">
-              Issuing parts will be available in the next module.
-            </p>
+            {myLocationRow && myLocationRow.quantity > 0 ? (
+              <button
+                type="button"
+                onClick={() => handleOpenIssueModal(myLocationRow)}
+                className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center gap-2"
+              >
+                <Package className="w-4 h-4" />
+                Issue Part
+              </button>
+            ) : bestOtherLocation && bestOtherLocation.quantity > 0 ? (
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => handleOpenIssueModal(bestOtherLocation)}
+                  className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center gap-2"
+                >
+                  <Package className="w-4 h-4" />
+                  Issue from {bestOtherLocation.location.name}
+                </button>
+                <p className="text-xs text-amber-700 text-center">
+                  Stock is unavailable locally.
+                </p>
+              </div>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="w-full py-2.5 px-4 bg-slate-100 text-slate-400 font-medium text-sm rounded-lg border border-slate-200 cursor-not-allowed transition-colors"
+              >
+                Out of Stock
+              </button>
+            )}
           </div>
 
           {/* Your Location Availability Card */}
@@ -373,6 +418,17 @@ export const PartDetailPage: React.FC = () => {
                       }}
                     />
                   </div>
+
+                  <div className="pt-2 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenIssueModal(myLocationRow)}
+                      className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center gap-1.5"
+                    >
+                      <Package className="w-3.5 h-3.5" />
+                      Issue from Your Location
+                    </button>
+                  </div>
                 </>
               ) : (
                 <div className="space-y-2">
@@ -413,7 +469,8 @@ export const PartDetailPage: React.FC = () => {
                     <tr className="border-b border-slate-200 text-slate-500">
                       <th className="py-2 pr-2 font-medium">Location</th>
                       <th className="py-2 px-2 font-medium text-right">Qty</th>
-                      <th className="py-2 pl-2 font-medium">Shelf Details</th>
+                      <th className="py-2 px-2 font-medium">Shelf Details</th>
+                      <th className="py-2 pl-2 font-medium text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -434,7 +491,7 @@ export const PartDetailPage: React.FC = () => {
                             {loc.quantity}
                           </span>
                         </td>
-                        <td className="py-2 pl-2 text-slate-500">
+                        <td className="py-2 px-2 text-slate-500">
                           {loc.store_name || loc.rack || loc.bin ? (
                             <span>
                               {[loc.store_name, loc.rack ? `R:${loc.rack}` : null, loc.bin ? `B:${loc.bin}` : null]
@@ -443,6 +500,19 @@ export const PartDetailPage: React.FC = () => {
                             </span>
                           ) : (
                             <span className="italic text-slate-400">—</span>
+                          )}
+                        </td>
+                        <td className="py-2 pl-2 text-right">
+                          {loc.quantity > 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenIssueModal(loc)}
+                              className="px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              Issue
+                            </button>
+                          ) : (
+                            <span className="text-xs text-slate-400 italic">Out of stock</span>
                           )}
                         </td>
                       </tr>
@@ -458,6 +528,19 @@ export const PartDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Issue Part Modal */}
+      {isIssueModalOpen && selectedIssueLocation && part && user && (
+        <IssuePartModal
+          isOpen={isIssueModalOpen}
+          onClose={handleCloseIssueModal}
+          part={part}
+          selectedLocation={selectedIssueLocation}
+          currentUser={user}
+          onSuccess={handleIssueSuccess}
+          onStockChange={fetchPart}
+        />
+      )}
     </div>
   );
 };

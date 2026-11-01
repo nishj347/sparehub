@@ -107,6 +107,7 @@ def get_employee_part_detail(db: Session, part_id: int, current_user: User) -> E
 
         location_items.append(
             LocationStockDetail(
+                inventory_id=inv.id,
                 location=PublicLocationBrief(
                     id=inv.location.id,
                     name=inv.location.name,

@@ -19,6 +19,7 @@ lib64/
 parts/
 !frontend/src/lib/
 !frontend/src/components/admin/parts/
+!frontend/src/components/parts/
 sdist/
 var/
 wheels/

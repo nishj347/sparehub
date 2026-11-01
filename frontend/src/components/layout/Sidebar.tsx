@@ -178,7 +178,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <span>Spare Parts</span>
               </NavLink>
               <NavLink
-                to="/issues"
+                to="/history"
                 onClick={onClose}
                 className={({ isActive }) => `${linkBase} ${isActive ? activeLink : inactiveLink}`}
               >

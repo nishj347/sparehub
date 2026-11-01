@@ -24,6 +24,7 @@ export interface SpecItem {
 export type AvailabilityStatus = 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK';
 
 export interface LocationStockDetail {
+  inventory_id?: number;
   location: PublicLocationBrief;
   quantity: number;
   store_name: string | null;

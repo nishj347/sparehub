@@ -37,6 +37,7 @@ class LocationStockDetail(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+    inventory_id: Optional[int] = None
     location: PublicLocationBrief
     quantity: int
     store_name: Optional[str] = None

@@ -4,16 +4,19 @@ import { AppShell } from '../components/layout/AppShell';
 import { DashboardPage } from '../pages/employee/DashboardPage';
 import { PartsSearchPage } from '../pages/employee/PartsSearchPage';
 import { PartDetailPage as EmployeePartDetailPage } from '../pages/employee/PartDetailPage';
+import { IssueHistoryPage } from '../pages/employee/IssueHistoryPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
-import { PlaceholderPage } from '../pages/PlaceholderPage';
 import { LocationsPage } from '../pages/admin/LocationsPage';
 import { MachinesPage } from '../pages/admin/MachinesPage';
 import { PartsPage } from '../pages/admin/PartsPage';
 import { PartCreatePage } from '../pages/admin/PartCreatePage';
 import { PartEditPage } from '../pages/admin/PartEditPage';
 import { PartDetailPage } from '../pages/admin/PartDetailPage';
+import { ActivityPage } from '../pages/admin/ActivityPage';
+import { NotificationsPage } from '../pages/admin/NotificationsPage';
+import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 import { ProtectedRoute, RoleRoute } from './ProtectedRoute';
 
 export const AppRoutes: React.FC = () => {
@@ -34,16 +37,8 @@ export const AppRoutes: React.FC = () => {
         <Route index element={<DashboardPage />} />
         <Route path="parts" element={<PartsSearchPage />} />
         <Route path="parts/:id" element={<EmployeePartDetailPage />} />
-        <Route
-          path="issues"
-          element={
-            <PlaceholderPage
-              title="My Issue History"
-              description="Historical records of spare parts issuance and tracking."
-              targetModule="Module 7 (Issue Workflow & Audit)"
-            />
-          }
-        />
+        <Route path="history" element={<IssueHistoryPage />} />
+        <Route path="issues" element={<Navigate to="/history" replace />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
@@ -56,16 +51,7 @@ export const AppRoutes: React.FC = () => {
           </RoleRoute>
         }
       >
-        <Route
-          index
-          element={
-            <PlaceholderPage
-              title="Admin Dashboard"
-              description="Overview of inventory levels, recent transactions, and low-stock alerts."
-              targetModule="Module 4 (Admin Dashboard)"
-            />
-          }
-        />
+        <Route index element={<AdminDashboardPage />} />
         <Route path="locations" element={<LocationsPage />} />
         <Route path="machines" element={<MachinesPage />} />
         <Route path="parts" element={<PartsPage />} />
@@ -73,26 +59,8 @@ export const AppRoutes: React.FC = () => {
         <Route path="parts/:id" element={<PartDetailPage />} />
         <Route path="parts/:id/edit" element={<PartEditPage />} />
         <Route path="inventory" element={<Navigate to="/admin/parts" replace />} />
-        <Route
-          path="activity"
-          element={
-            <PlaceholderPage
-              title="Inventory Activity"
-              description="Ledger of all inventory transactions — received, issued, and adjusted."
-              targetModule="Module 5 (Inventory Activity Log)"
-            />
-          }
-        />
-        <Route
-          path="notifications"
-          element={
-            <PlaceholderPage
-              title="Notifications"
-              description="Low-stock alerts and system notifications for store administrators."
-              targetModule="Module 7 (Notifications)"
-            />
-          }
-        />
+        <Route path="activity" element={<ActivityPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
