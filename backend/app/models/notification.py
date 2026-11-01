@@ -8,6 +8,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.inventory_transaction import InventoryTransaction
+    from app.models.surplus import SurplusItem
     from app.models.user import User
 
 
@@ -20,6 +21,7 @@ class Notification(Base):
             "is_read",
             "created_at",
         ),
+        Index("ix_notifications_surplus_item_id", "surplus_item_id"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -29,6 +31,10 @@ class Notification(Base):
     )
     transaction_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("inventory_transactions.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    surplus_item_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("surplus_items.id", ondelete="SET NULL"),
         nullable=True,
     )
     message: Mapped[str] = mapped_column(Text, nullable=False)
@@ -42,6 +48,9 @@ class Notification(Base):
     # Relationships
     recipient_user: Mapped["User"] = relationship(back_populates="notifications")
     transaction: Mapped[Optional["InventoryTransaction"]] = relationship(
+        back_populates="notifications"
+    )
+    surplus_item: Mapped[Optional["SurplusItem"]] = relationship(
         back_populates="notifications"
     )
 

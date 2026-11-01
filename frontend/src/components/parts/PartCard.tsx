@@ -51,18 +51,21 @@ export const PartCard: React.FC<PartCardProps> = ({ part, searchQuery = '' }) =>
   const isMyLocation = part.primary_location?.is_my_location ?? false;
   const primaryLocationName = part.primary_location?.location.name ?? '';
 
+  const qty = part.primary_location?.quantity ?? 0;
+  const qtyLabel = `${qty} unit${qty !== 1 ? 's' : ''} available`;
+
   return (
     <Link
       to={`/parts/${part.id}`}
-      className="group flex flex-col bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+      className="group flex flex-col bg-white rounded border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
       aria-label={`View details for ${part.name}`}
     >
       {/* Image */}
-      <div className="relative overflow-hidden rounded-t-lg">
+      <div className="relative overflow-hidden rounded-t">
         <PartImage
           src={part.image_url}
           alt={part.name}
-          className="w-full h-40"
+          className="w-full h-36"
         />
       </div>
 
@@ -76,13 +79,13 @@ export const PartCard: React.FC<PartCardProps> = ({ part, searchQuery = '' }) =>
           <AvailabilityBadge status={part.availability_status} className="shrink-0 mt-0.5" />
         </div>
 
-        {/* Part ID */}
-        <p className="font-mono text-xs text-slate-500 tracking-wide">
+        {/* Part number */}
+        <p className="font-mono text-[11px] text-slate-500 tracking-wide">
           <Highlight text={part.part_number} query={searchQuery} />
         </p>
 
         {/* Category / manufacturer */}
-        <p className="text-xs text-slate-500 truncate">
+        <p className="text-xs text-slate-400 truncate">
           {part.category}
           {part.manufacturer ? ` · ${part.manufacturer}` : ''}
         </p>
@@ -96,19 +99,24 @@ export const PartCard: React.FC<PartCardProps> = ({ part, searchQuery = '' }) =>
           </p>
         )}
 
-        {/* Stock summary */}
-        <div className="mt-auto pt-2 border-t border-slate-100 flex flex-col gap-1">
+        {/* Location + stock block */}
+        <div className="mt-auto pt-3 border-t border-slate-100 flex flex-col gap-1.5">
           {part.availability_status !== 'OUT_OF_STOCK' && part.primary_location ? (
             <>
-              <span className="text-xs font-medium text-slate-700">
+              {/* Quantity */}
+              <span className="text-sm font-semibold text-slate-800">
                 {isMyLocation
-                  ? `Available: ${part.primary_location.quantity} unit${part.primary_location.quantity !== 1 ? 's' : ''}`
-                  : `Most stock at ${primaryLocationName}: ${part.primary_location.quantity}`}
+                  ? qtyLabel
+                  : `Most stock at ${primaryLocationName}: ${qty} unit${qty !== 1 ? 's' : ''}`}
               </span>
+
+              {/* Location block */}
               <LocationLine primary={part.primary_location} />
+
+              {/* Other locations */}
               {part.other_locations_with_stock > 0 && (
-                <span className="text-xs text-slate-400">
-                  Also in {part.other_locations_with_stock} other location
+                <span className="text-xs text-slate-400 mt-0.5">
+                  Also available at {part.other_locations_with_stock} other location
                   {part.other_locations_with_stock !== 1 ? 's' : ''}
                 </span>
               )}
@@ -121,4 +129,3 @@ export const PartCard: React.FC<PartCardProps> = ({ part, searchQuery = '' }) =>
     </Link>
   );
 };
-

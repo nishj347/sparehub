@@ -8,6 +8,7 @@ from app.models.machine import Machine
 from app.models.notification import Notification
 from app.models.part_machine import PartMachine
 from app.models.spare_part import SparePart
+from app.models.surplus import SurplusCondition, SurplusInterest, SurplusItem, SurplusKind, SurplusStatus
 from app.models.user import User
 
 __all__ = [
@@ -21,4 +22,9 @@ __all__ = [
     "Inventory",
     "InventoryTransaction",
     "Notification",
+    "SurplusItem",
+    "SurplusInterest",
+    "SurplusKind",
+    "SurplusCondition",
+    "SurplusStatus",
 ]

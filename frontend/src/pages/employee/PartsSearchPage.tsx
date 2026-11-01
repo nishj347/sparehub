@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { RefreshCw, SlidersHorizontal, X } from 'lucide-react';
 import { searchParts, getPartFilters } from '../../api/parts';
-import { PartCard as PartCardType, PartFilters } from '../../types/partsPublic';
+import { PartCard as PartCardType, PartFilters, PublicMachineBrief } from '../../types/partsPublic';
 import { Page } from '../../types/common';
 import { PartCard } from '../../components/parts/PartCard';
 import { PartFiltersBar } from '../../components/parts/PartFilters';
@@ -13,8 +13,8 @@ import { ApiError } from '../../api/client';
 
 // Skeleton card placeholder
 const CardSkeleton: React.FC = () => (
-  <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden animate-pulse">
-    <div className="w-full h-40 bg-slate-100" />
+  <div className="bg-white rounded border border-slate-200 overflow-hidden animate-pulse">
+    <div className="w-full h-36 bg-slate-100" />
     <div className="p-4 space-y-3">
       <div className="h-4 bg-slate-100 rounded w-3/4" />
       <div className="h-3 bg-slate-100 rounded w-1/3" />
@@ -109,6 +109,11 @@ export const PartsSearchPage: React.FC = () => {
   const totalPages = result ? Math.ceil(result.total / result.page_size) : 0;
   const hasFilters = !!(category || machineId || locationId || (availability && availability !== 'all'));
 
+  // Resolve selected machine name for banner
+  const selectedMachine: PublicMachineBrief | undefined = machineId && filters
+    ? filters.machines.find((m) => String(m.id) === machineId)
+    : undefined;
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -149,8 +154,33 @@ export const PartsSearchPage: React.FC = () => {
         />
       </div>
 
-      {/* Result summary */}
-      {result && !loading && (
+      {/* Machine filter banner */}
+      {selectedMachine && (
+        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-blue-50 border border-blue-200 rounded">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-blue-900 leading-snug">
+              Spare parts used in {selectedMachine.name}{' '}
+              <span className="font-mono font-normal text-blue-700">({selectedMachine.code})</span>
+            </p>
+            {result && !loading && (
+              <p className="text-xs text-blue-700 mt-0.5">
+                {result.total} part{result.total !== 1 ? 's' : ''} found
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => set({ machine_id: null })}
+            className="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:text-blue-900 border border-blue-200 hover:border-blue-400 bg-white px-2.5 py-1 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <X className="w-3 h-3" />
+            Clear
+          </button>
+        </div>
+      )}
+
+      {/* Result summary (only when no machine banner) */}
+      {result && !loading && !selectedMachine && (
         <p
           className="text-sm text-slate-500"
           aria-live="polite"
@@ -202,13 +232,16 @@ export const PartsSearchPage: React.FC = () => {
       {!loading && !error && result && result.items.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
           <p className="text-base font-semibold text-slate-700">
-            {q ? `No parts match "${q}"` : 'No parts in the catalogue'}
+            {selectedMachine
+              ? `No parts mapped to ${selectedMachine.name}`
+              : q
+              ? `No parts match "${q}"`
+              : 'No parts in the catalogue'}
           </p>
-          {q && (
+          {(q || hasFilters) && (
             <ul className="text-sm text-slate-500 list-disc list-inside text-left">
-              <li>Check spelling</li>
-              <li>Try a machine name or code</li>
-              <li>Try a broader search term</li>
+              {q && <li>Check spelling or try a broader term</li>}
+              {hasFilters && <li>Try removing some filters</li>}
             </ul>
           )}
           {hasFilters && (

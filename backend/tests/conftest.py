@@ -94,8 +94,9 @@ def clean_database_and_rate_limits():
     with test_engine.connect() as conn:
         conn.execute(
             text(
-                "TRUNCATE TABLE notifications, inventory_transactions, inventory, "
-                "part_machines, machines, spare_parts, users, locations RESTART IDENTITY CASCADE"
+                "TRUNCATE TABLE notifications, surplus_interests, surplus_items, "
+                "inventory_transactions, inventory, part_machines, machines, "
+                "spare_parts, users, locations RESTART IDENTITY CASCADE"
             )
         )
         conn.commit()
