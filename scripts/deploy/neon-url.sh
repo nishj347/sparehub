@@ -15,8 +15,8 @@ if [[ -z "$RAW_URL" ]]; then
     read -r -p "Enter Neon PostgreSQL connection string: " RAW_URL
 fi
 
-# Trim whitespace
-RAW_URL="$(echo "$RAW_URL" | xargs)"
+# Trim whitespace and sanitize common :// double colon typo
+RAW_URL="$(echo "$RAW_URL" | xargs | sed 's|:://|://|g')"
 
 if [[ -z "$RAW_URL" ]]; then
     echo "Error: No URL provided." >&2

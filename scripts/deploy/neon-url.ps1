@@ -27,6 +27,9 @@ if (-not $clean) {
     exit 1
 }
 
+# Fix common typo where an extra colon is introduced before //
+$clean = $clean -replace ":://+", "://"
+
 # Try Python if available for exact URL parsing
 if (Get-Command python -ErrorAction SilentlyContinue) {
     try {
