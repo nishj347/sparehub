@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: sparehub-api
+    runtime: docker
+    plan: free
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    dockerCommand: sh -c "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips '*'"
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: APP_ENV
+        value: production
+      - key: APP_TIMEZONE
+        value: Asia/Kolkata
+      - key: WEB_CONCURRENCY
+        value: 1
+      - key: TRUSTED_PROXY_COUNT
+        value: 2
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

@@ -44,6 +44,11 @@ frontend/.vite/
 .env.production
 !.env.example
 !.env.production.example
+!.env.render.example
+.env.render
+.env.deploy.local
+.env.*.local
+*.local.env
 backend/.env
 frontend/.env
 backups/
