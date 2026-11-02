@@ -204,6 +204,13 @@ The smoke test will:
 - **Cause:** Neon strictly requires encrypted TLS connections. The connection string must include `sslmode=require`, and the URL scheme must be `postgresql+psycopg://` (not `postgresql://`).
 - **Solution:** Pass your Neon URL through `./scripts/deploy/neon-url.sh` (or `.\scripts\deploy\neon-url.ps1`) and update `DATABASE_URL` in the Render dashboard.
 
+### 6. Docker Command "not found" / Exited with status 127
+- **Symptom:** Render deployment fails with:
+  `sh: 1: alembic upgrade head && exec uvicorn ...: not found`
+- **Cause:** In Render, passing chained commands with quotes directly in `dockerCommand` causes the container shell (`/bin/sh`) to treat the entire quoted string as a single binary filename rather than separate commands.
+- **Solution:** Use the dedicated entrypoint script: `dockerCommand: sh ./app/scripts/start.sh` (already configured in `render.yaml`), or in the Render Dashboard under **Settings** > **Docker Command**, set:
+  `sh ./app/scripts/start.sh`
+
 ---
 
 ## Known Free-Tier Limitations
