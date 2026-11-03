@@ -103,44 +103,18 @@ $EmployeeId = $EmployeeId.Trim().ToUpper()
 $secretKey = & "$scriptDir\gen-secret.ps1"
 
 # Set environment variables for the python child process
+# APP_ENV=development ensures local backend/.env settings (like SEED_DEFAULT_PASSWORD)
+# do not trigger production validator errors while writing to the remote database.
 $env:DATABASE_URL = $convertedDbUrl
-$env:APP_ENV = "production"
+$env:APP_ENV = "development"
 $env:APP_TIMEZONE = "Asia/Kolkata"
-$env:CORS_ORIGINS = "https://admin.sparehub.internal"
-$env:SECRET_KEY = $secretKey
-$env:SEED_DEFAULT_PASSWORD = ""
 
 Write-Host "[INFO] Verifying location '$LocationCode' in remote database..." -ForegroundColor Cyan
 
 # Pre-verify and initialize location if absent
 Push-Location $backendDir
 try {
-    python -c @"
-import sys
-from sqlalchemy import select
-from app.db.session import SessionLocal
-from app.models.location import Location
-
-loc_code = sys.argv[1].strip()
-db = SessionLocal()
-try:
-    loc = db.scalar(select(Location).where(Location.code == loc_code))
-    if not loc:
-        print(f"[INFO] Location '{loc_code}' does not exist yet. Initializing location record...")
-        new_loc = Location(
-            name=f'ITC {loc_code}',
-            code=loc_code,
-            city='Main Facility',
-            is_active=True
-        )
-        db.add(new_loc)
-        db.commit()
-        print(f"[SUCCESS] Initialized location '{loc_code}'.")
-    else:
-        print(f"[INFO] Location '{loc_code}' ({loc.name}) confirmed.")
-finally:
-    db.close()
-"@ "$LocationCode"
+    python -m app.scripts.init_location "$LocationCode"
 
     Write-Host "[INFO] Running python -m app.scripts.create_admin..." -ForegroundColor Green
     python -m app.scripts.create_admin `

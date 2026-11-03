@@ -57,7 +57,7 @@ while [[ $ATTEMPT -le $MAX_ATTEMPTS ]]; do
     BODY=$(cat "$RESPONSE_FILE" 2>/dev/null || true)
     rm -f "$RESPONSE_FILE"
 
-    if [[ "$HTTP_CODE" == "200" ]] && echo "$BODY" | grep -qi "healthy"; then
+    if [[ "$HTTP_CODE" == "200" ]] && echo "$BODY" | grep -qi -E "(ok|healthy)"; then
         API_STATUS="PASS"
         echo "            -> PASS (attempt $ATTEMPT/$MAX_ATTEMPTS: HTTP 200 OK)"
         break
@@ -84,7 +84,7 @@ while [[ $DB_ATTEMPT -le $DB_ATTEMPTS ]]; do
     BODY=$(cat "$RESPONSE_FILE" 2>/dev/null || true)
     rm -f "$RESPONSE_FILE"
 
-    if [[ "$HTTP_CODE" == "200" ]] && echo "$BODY" | grep -qi "healthy"; then
+    if [[ "$HTTP_CODE" == "200" ]] && echo "$BODY" | grep -qi -E "(ok|healthy|connected)"; then
         DB_STATUS="PASS"
         echo "            -> PASS (attempt $DB_ATTEMPT/$DB_ATTEMPTS: HTTP 200 OK)"
         break

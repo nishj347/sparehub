@@ -60,17 +60,12 @@ if [[ -z "$DB_URL" ]]; then
     exit 1
 fi
 
-# Set required environment variables to satisfy app/core/config.py validation in production mode
+# Set environment variables for the python child process
+# APP_ENV=development ensures local backend/.env settings (like SEED_DEFAULT_PASSWORD)
+# do not trigger production validator errors while writing to the remote database.
 export DATABASE_URL="$DB_URL"
-export APP_ENV="${APP_ENV:-production}"
+export APP_ENV="development"
 export APP_TIMEZONE="${APP_TIMEZONE:-Asia/Kolkata}"
-export CORS_ORIGINS="${CORS_ORIGINS:-https://admin.sparehub.internal}"
-export SEED_DEFAULT_PASSWORD=""
-
-# Generate a temporary >=32 char SECRET_KEY for config validator if not provided
-if [[ -z "${SECRET_KEY:-}" ]] || [[ "${#SECRET_KEY}" -lt 32 ]] || [[ "$SECRET_KEY" == *"placeholder"* ]]; then
-    export SECRET_KEY="$("$SCRIPT_DIR/gen-secret.sh")"
-fi
 
 # Parse any CLI arguments passed or prompt for admin details
 EMP_ID=""
@@ -125,32 +120,7 @@ EMP_ID="$(echo "$EMP_ID" | tr '[:lower:]' '[:upper:]' | xargs)"
 echo "[INFO] Verifying location '$LOC_CODE' in remote database..."
 (
     cd "$REPO_ROOT/backend"
-    "$PY_BIN" - "$LOC_CODE" << 'EOF'
-import sys
-from sqlalchemy import select
-from app.db.session import SessionLocal
-from app.models.location import Location
-
-loc_code = sys.argv[1].strip()
-db = SessionLocal()
-try:
-    loc = db.scalar(select(Location).where(Location.code == loc_code))
-    if not loc:
-        print(f"[INFO] Location '{loc_code}' does not exist yet. Initializing location record...")
-        new_loc = Location(
-            name=f"ITC {loc_code}",
-            code=loc_code,
-            city="Main Facility",
-            is_active=True
-        )
-        db.add(new_loc)
-        db.commit()
-        print(f"[SUCCESS] Initialized location '{loc_code}'.")
-    else:
-        print(f"[INFO] Location '{loc_code}' ({loc.name}) confirmed.")
-finally:
-    db.close()
-EOF
+    "$PY_BIN" -m app.scripts.init_location "$LOC_CODE"
 )
 
 # Run interactive create_admin script

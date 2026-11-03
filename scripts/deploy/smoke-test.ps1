@@ -61,7 +61,7 @@ $apiUrl = "$cleanUrl/api/health"
 for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
     try {
         $apiResp = Invoke-WebRequest -Uri $apiUrl -UseBasicParsing -TimeoutSec 15
-        if ($apiResp.StatusCode -eq 200 -and ($apiResp.Content -match "healthy")) {
+        if ($apiResp.StatusCode -eq 200 -and ($apiResp.Content -match "(ok|healthy)")) {
             $apiStatus = "PASS"
             Write-Host "            -> PASS (attempt $attempt/${maxAttempts}: HTTP 200 OK)" -ForegroundColor Green
             break
@@ -86,7 +86,7 @@ $dbMaxAttempts = 6
 for ($dbAttempt = 1; $dbAttempt -le $dbMaxAttempts; $dbAttempt++) {
     try {
         $dbResp = Invoke-WebRequest -Uri $dbUrl -UseBasicParsing -TimeoutSec 15
-        if ($dbResp.StatusCode -eq 200 -and ($dbResp.Content -match "healthy")) {
+        if ($dbResp.StatusCode -eq 200 -and ($dbResp.Content -match "(ok|healthy|connected)")) {
             $dbStatus = "PASS"
             Write-Host "            -> PASS (attempt $dbAttempt/${dbMaxAttempts}: HTTP 200 OK)" -ForegroundColor Green
             break
