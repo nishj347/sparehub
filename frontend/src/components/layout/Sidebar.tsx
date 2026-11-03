@@ -12,6 +12,7 @@ import {
   Wrench,
   X,
   ChevronRight,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 
@@ -136,6 +137,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 >
                   <Cpu className="w-4 h-4 shrink-0" />
                   <span>Machines</span>
+                </NavLink>
+                <NavLink
+                  to="/admin/employees"
+                  onClick={onClose}
+                  className={({ isActive }) => `${linkBase} ${isActive ? activeLink : inactiveLink}`}
+                >
+                  <Users className="w-4 h-4 shrink-0" />
+                  <span>Employees</span>
                 </NavLink>
               </div>
 

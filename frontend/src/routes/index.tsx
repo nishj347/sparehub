@@ -17,6 +17,7 @@ import { PartDetailPage } from '../pages/admin/PartDetailPage';
 import { ActivityPage } from '../pages/admin/ActivityPage';
 import { NotificationsPage } from '../pages/admin/NotificationsPage';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
+import { EmployeesPage } from '../pages/admin/EmployeesPage';
 import { ProtectedRoute, RoleRoute } from './ProtectedRoute';
 
 export const AppRoutes: React.FC = () => {
@@ -61,6 +62,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="inventory" element={<Navigate to="/admin/parts" replace />} />
         <Route path="activity" element={<ActivityPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="employees" element={<EmployeesPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 

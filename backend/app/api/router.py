@@ -9,6 +9,7 @@ from app.api.routes import (
     admin_notifications,
     admin_parts,
     admin_surplus,
+    admin_users,
     auth,
     health,
     issues,
@@ -33,6 +34,7 @@ api_router.include_router(admin_inventory.router)
 api_router.include_router(admin_activity.router)
 api_router.include_router(admin_notifications.router)
 api_router.include_router(admin_surplus.router)
+api_router.include_router(admin_users.router)
 api_router.include_router(parts.router)
 api_router.include_router(issues.router)
 api_router.include_router(surplus.router)
